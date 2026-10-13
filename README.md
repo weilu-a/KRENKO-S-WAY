@@ -2,7 +2,7 @@
 
 # 🎲 KRENKO'S WAY
 
-### A visual-novel adaptation of the D&D 5e starter module *Krenko's Way* (Ravnica).
+### A visual-novel adaptation of the *Krenko's Way* adventure (Ravnica).
 
 An LLM plays the Dungeon Master. You type what you want to do, and the game responds
 in prose — with the world state changing accordingly.
@@ -13,7 +13,6 @@ in prose — with the world state changing accordingly.
 ![TypeScript](https://img.shields.io/badge/TypeScript-5-3178c6?style=flat-square)
 ![Vite](https://img.shields.io/badge/Vite-5-646cff?style=flat-square)
 ![No backend](https://img.shields.io/badge/backend-none-00c853?style=flat-square)
-![LLM](https://img.shields.io/badge/LLM-Ark%20%7C%20Ollama-8a2be2?style=flat-square)
 
 </div>
 

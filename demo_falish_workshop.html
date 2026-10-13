@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>心渊之网 · 演示 — 法莉什工坊对峙</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #000;
+      font-family: "Microsoft YaHei", sans-serif;
+    }
+    #wrap {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: #000;
+    }
+    /* 与项目 index.html / MainScene 一致：固定 1280×720 游戏区 */
+    #game {
+      position: relative;
+      width: 1280px;
+      height: 720px;
+      max-width: 100%;
+      max-height: 100%;
+      aspect-ratio: 1280 / 720;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+    #game.scale-fit {
+      width: min(100vw, calc(100vh * 1280 / 720));
+      height: min(100vh, calc(100vw * 720 / 1280));
+    }
+    .layer-bg,
+    .layer-char {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      pointer-events: none;
+    }
+    .layer-char {
+      z-index: 1;
+    }
+    #ui {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 2;
+      pointer-events: none;
+    }
+    #ui * { pointer-events: auto; }
+
+    /* 左侧对话框 40% — MainScene: dialogPanel */
+    #dialogPanel {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 40%;
+      height: calc(100% - var(--footer-h));
+      background: rgba(0, 0, 0, 0.8);
+      border-right: 1px solid rgba(255, 255, 255, 0.3);
+      display: flex;
+      flex-direction: column;
+      padding: 12px 12px 12px calc(12px + 28px);
+      cursor: pointer;
+    }
+    #messages {
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding-right: 8px;
+      font-size: 16px;
+      line-height: 22px;
+    }
+    .msg-dm { color: #ffffff; margin-bottom: 14px; white-space: pre-wrap; word-break: break-word; }
+    .msg-player { color: #ff9f40; margin-bottom: 14px; white-space: pre-wrap; word-break: break-word; }
+    #continueHint {
+      text-align: center;
+      font-size: 14px;
+      color: #aaaaaa;
+      margin-top: 8px;
+      flex-shrink: 0;
+      animation: blink 1.2s ease-in-out infinite;
+      display: none;
+    }
+    #continueHint.visible { display: block; }
+    @keyframes blink {
+      0%, 100% { opacity: 0.4; }
+      50% { opacity: 1; }
+    }
+
+    /* 底栏 — footerBar #1b2a32 + 金线 */
+    :root { --footer-h: 137px; }
+    #footer {
+      position: absolute;
+      left: 0;
+      bottom: 0;
+      width: 100%;
+      height: var(--footer-h);
+      background: #1b2a32;
+      border-top: 2px solid #c9a227;
+      display: grid;
+      grid-template-columns: 23% 1fr 27%;
+      gap: 10px;
+      padding: 10px 12px;
+      align-items: start;
+    }
+    #footerLeftCol {
+      display: grid;
+      grid-template-columns: 52% 48%;
+      gap: 8px;
+      min-width: 0;
+    }
+    #footerLeft1, #footerLeft2 {
+      font-size: 11px;
+      line-height: 15px;
+      color: #d4c4a0;
+      white-space: pre-line;
+    }
+    #footerRight {
+      font-size: 11px;
+      line-height: 15px;
+      color: #c8e6d0;
+      white-space: pre-line;
+    }
+    #inputWrap {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding-left: 18px;
+    }
+    #inputWrap textarea {
+      width: 100%;
+      height: min(84px, calc(var(--footer-h) - 20px));
+      font-family: "Microsoft YaHei", sans-serif;
+      font-size: 16px;
+      line-height: 22px;
+      color: #000;
+      background: rgba(255, 255, 255, 0.95);
+      border: 1px solid rgba(68, 68, 68, 0.6);
+      border-radius: 6px;
+      padding: 10px 12px;
+      resize: none;
+      outline: none;
+    }
+    #inputWrap textarea:disabled {
+      opacity: 0.6;
+    }
+    #inputWrap textarea::placeholder {
+      color: #666;
+    }
+
+    /* 右侧骰子区 — 占位与锁定态（无检定时） */
+    #diceArea {
+      position: absolute;
+      right: 10px;
+      top: 20px;
+      width: calc(60% - 22px);
+      height: calc(100% - var(--footer-h) - 40px);
+      pointer-events: none;
+    }
+    #diceInner {
+      position: absolute;
+      right: 8px;
+      bottom: 8px;
+      width: 42%;
+      height: 52%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      opacity: 0.35;
+      filter: grayscale(0.3);
+    }
+    .dice-ph {
+      width: 56px;
+      height: 56px;
+      border-radius: 8px;
+      background: linear-gradient(145deg, #3a3a48, #1a1a22);
+      border: 2px solid #555;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font: 12px "Courier New", monospace;
+      color: #888;
+    }
+    #diceResult {
+      position: absolute;
+      right: calc(22% + 8px);
+      bottom: calc(26% + 8px);
+      transform: translate(50%, 50%);
+      font: 28px "Courier New", monospace;
+      color: #ff4040;
+      text-shadow: -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000, 2px 2px 0 #000;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+  <div id="wrap">
+    <div id="game" class="scale-fit">
+      <img class="layer-bg" src="assets/backgrounds/BLOCK_05_falish_workshop.png" alt="" />
+      <img class="layer-char" src="assets/characters/Falish.png" alt="" />
+
+      <div id="ui">
+        <div id="dialogPanel" title="点击空白处推进 DM 念白">
+          <div id="messages"></div>
+          <div id="continueHint">▼ 点击继续</div>
+        </div>
+
+        <div id="diceArea">
+          <div id="diceInner">
+            <div class="dice-ph">d20</div>
+            <div class="dice-ph">d6</div>
+            <div class="dice-ph">d10</div>
+          </div>
+          <div id="diceResult"></div>
+        </div>
+
+        <div id="footer">
+          <div id="footerLeftCol">
+            <div id="footerLeft1">◈ 状态
+HP 37/37  AC 16
+速度 30尺  攻击+5  1d8+3
+◈ 属性
+力16 敏12 体16
+智10 感12 魅10</div>
+            <div id="footerLeft2">◈ 装备
+（演示固定面板）</div>
+          </div>
+          <div id="inputWrap">
+            <textarea id="playerInput" maxlength="500" placeholder="在此输入你想说的话或决策，回车发送…" disabled></textarea>
+          </div>
+          <div id="footerRight">◈ 背包
+先付奇诺×1、卷宗×1
+◈ 可前往
+（演示）法莉什工坊 · 对峙</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+(function () {
+  var game = document.getElementById("game");
+  function fitScale() {
+    game.classList.add("scale-fit");
+  }
+  window.addEventListener("resize", fitScale);
+  fitScale();
+
+  var messagesEl = document.getElementById("messages");
+  var hint = document.getElementById("continueHint");
+  var input = document.getElementById("playerInput");
+  var dialogPanel = document.getElementById("dialogPanel");
+
+  /** 与 BLOCK_11 暗线交易一致：工坊内对峙，法莉什试探立场 */
+  var introQueue = [
+    "提灯在梁下摇晃，蒸馏瓶里的液体泛着冷光。你踏进法莉什的炼金工坊——她背对门口，正将一支试管贴上标签，仿佛早就听见你的脚步声。",
+    "法莉什转过身来，目光从你腰间的武器扫到卷宗一角。她没有立刻交出任何情报，只是低声问：「你找到这儿来了。问题是——你是来结束混乱，还是只是换一个主子效忠？」"
+  ];
+
+  /** 玩家发送后依次触发的 DM 回复（模拟叙事层） */
+  var replySteps = [
+    {
+      dm: "她把试管轻轻搁在铁架上，指尖敲了敲柜台。「漂亮话谁都会说。你若真想拿克仑可的下落——拿诚意来换：承诺不碰我的供货线、不在锡街砸我的招牌，我就给你一条能绕开骚帮耳目的路。」"
+    },
+    {
+      dm: "沉默片刻，她从抽屉里抽出一张熏黄的草图，在台面推向你。「从运河旧仓西侧双扇门进——换班时守卫最松。别让我在后巷听见你卖了我的门。」她的语气像淬过的刀，「你若食言，下水道里多一具尸体，也不会有人替你收尸。」"
+    },
+    {
+      dm: "【系统】法莉什（falish）关系变化已记录；你可动身前往藏身处方向继续追查。（演示结束——本页为静态剧本，未连接真实模型。）"
+    }
+  ];
+
+  var introIndex = 0;
+  var replyIndex = 0;
+  var introMode = true;
+  var waitingClick = false;
+
+  function appendMessage(from, text) {
+    var div = document.createElement("div");
+    div.className = from === "player" ? "msg-player" : "msg-dm";
+    div.textContent = text;
+    messagesEl.appendChild(div);
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+  }
+
+  function setHint(on) {
+    if (on) hint.classList.add("visible");
+    else hint.classList.remove("visible");
+    waitingClick = on;
+  }
+
+  function setInputEnabled(on) {
+    input.disabled = !on;
+    input.placeholder = on ? "在此输入你想说的话或决策，回车发送…" : "等待叙事…";
+  }
+
+  function advanceIntro() {
+    if (!introMode) return;
+    if (introIndex >= introQueue.length) return;
+    appendMessage("dm", introQueue[introIndex]);
+    introIndex++;
+    if (introIndex < introQueue.length) {
+      setHint(true);
+    } else {
+      setHint(false);
+      introMode = false;
+      setInputEnabled(true);
+      input.focus();
+    }
+  }
+
+  dialogPanel.addEventListener("click", function (e) {
+    if (e.target === input || input.contains(e.target)) return;
+    if (waitingClick) {
+      advanceIntro();
+    }
+  });
+
+  input.addEventListener("keydown", function (e) {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      var t = input.value.trim();
+      if (!t || input.disabled) return;
+      appendMessage("player", t);
+      input.value = "";
+      setInputEnabled(false);
+      setTimeout(function () {
+        if (replyIndex < replySteps.length) {
+          appendMessage("dm", replySteps[replyIndex].dm);
+          replyIndex++;
+          if (replyIndex >= replySteps.length) {
+            input.placeholder = "（演示已结束）";
+            setInputEnabled(false);
+          } else {
+            setInputEnabled(true);
+            input.focus();
+          }
+        }
+      }, 400);
+    }
+  });
+
+  // 首段念白：进入场景即显示第一条，第二条需点击继续（贴近游戏内 readAloud 队列）
+  advanceIntro();
+})();
+  </script>
+</body>
+</html>

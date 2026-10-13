@@ -1,0 +1,9 @@
+{
+  "created_at": "2026-02-02T06:14:19Z",
+  "description": "",
+  "dev_port": 5179,
+  "dimension": "pixijs",
+  "name": "2d_game_template",
+  "standalone": true,
+  "tags": []
+}

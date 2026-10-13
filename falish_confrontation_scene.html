@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>法莉丝对峙场景 - 心渊之网</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #0a0a15;
+    }
+    #game-container {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: #000;
+    }
+    #game-content {
+      width: 1280px;
+      height: 720px;
+      position: relative;
+      overflow: hidden;
+    }
+    #background {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+    }
+    #background img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    #character {
+      position: absolute;
+      bottom: 0;
+      right: 100px;
+      z-index: 2;
+      width: 300px;
+      height: auto;
+    }
+    #character img {
+      width: 100%;
+      height: auto;
+    }
+    #dialog-panel {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 512px;
+      height: 583px;
+      background: rgba(0, 0, 0, 0.8);
+      border-right: 1px solid rgba(255, 255, 255, 0.3);
+      z-index: 3;
+      padding: 12px 28px 12px 40px;
+      overflow-y: auto;
+    }
+    #messages-container {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .message {
+      font-family: 'Microsoft YaHei', sans-serif;
+      font-size: 16px;
+      line-height: 22px;
+      word-wrap: break-word;
+    }
+    .message.dm {
+      color: #ffffff;
+    }
+    .message.player {
+      color: #ff9f40;
+    }
+    #footer-bar {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 137px;
+      background: #1b2a32;
+      border-top: 2px solid #c9a227;
+      z-index: 5;
+      display: flex;
+      align-items: center;
+      padding: 0 12px;
+    }
+    #footer-left {
+      width: 294px;
+      display: flex;
+      gap: 8px;
+    }
+    #footer-left-col1 {
+      width: 153px;
+    }
+    #footer-left-col2 {
+      flex: 1;
+    }
+    #input-area {
+      flex: 1;
+      margin: 0 10px 0 18px;
+    }
+    #footer-right {
+      width: 346px;
+    }
+    #html-textarea {
+      width: 100%;
+      height: 84px;
+      padding: 10px 12px;
+      font-family: 'Microsoft YaHei', sans-serif;
+      font-size: 16px;
+      line-height: 22px;
+      border: 1px solid rgba(68, 68, 68, 0.6);
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.95);
+      resize: none;
+      outline: none;
+      z-index: 6;
+      position: relative;
+    }
+    #dice-area {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      width: 430px;
+      height: 300px;
+      z-index: 4;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    #dice-container {
+      position: relative;
+      width: 100%;
+      height: 100%;
+    }
+    #dice-result {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-family: 'Courier New', monospace;
+      font-size: 28px;
+      color: #ff4040;
+      text-shadow: 3px 3px 0 #000000;
+    }
+    .footer-text {
+      font-family: 'Microsoft YaHei', sans-serif;
+      font-size: 11px;
+      line-height: 15px;
+    }
+    .footer-left-text {
+      color: #d4c4a0;
+    }
+    .footer-right-text {
+      color: #c8e6d0;
+    }
+    #continue-indicator {
+      position: absolute;
+      bottom: 14px;
+      left: 256px;
+      transform: translateX(-50%);
+      font-family: 'Microsoft YaHei', sans-serif;
+      font-size: 14px;
+      color: #aaaaaa;
+      z-index: 4;
+      animation: blink 1.5s infinite;
+    }
+    @keyframes blink {
+      0%, 100% { opacity: 0.4; }
+      50% { opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+  <div id="game-container">
+    <div id="game-content">
+      <!-- 背景 -->
+      <div id="background">
+        <img src="assets/backgrounds/BLOCK_05_falish_workshop.png" alt="炼金工房">
+      </div>
+      
+      <!-- 角色立绘 -->
+      <div id="character">
+        <img src="assets/characters/Falish.png" alt="法莉丝">
+      </div>
+      
+      <!-- 对话框 -->
+      <div id="dialog-panel">
+        <div id="messages-container">
+          <div class="message dm">
+            你推开炼金工房的门，空气中弥漫着各种草药和金属的气味。法莉丝站在工作台前，手中拿着一个冒着紫色烟雾的烧瓶，她转过身来，紫色的斗篷随着动作轻轻飘动。
+          </div>
+          <div class="message dm">
+            法莉丝：啊，调查员。我正想着什么时候能再见到你。你来这里是为了克伦克的事吧？
+          </div>
+          <div class="message player">
+            是的，法莉丝。我需要了解更多关于克伦克最近活动的信息。有人告诉我你可能知道些什么。
+          </div>
+          <div class="message dm">
+            法莉丝：轻笑我就知道你会这么说。克伦克最近确实在锡街活动频繁，但他的计划比以前更加隐秘了。
+          </div>
+          <div class="message dm">
+            法莉丝：不过，信息是有代价的。你打算用什么来交换呢？
+          </div>
+          <div class="message player">
+            我可以给你一些金币，或者帮你做些事情。你需要什么？
+          </div>
+          <div class="message dm">
+            法莉丝：金币总是受欢迎的，但我现在更需要一些实际的帮助。锻炉街的铁匠欠我一个人情，他有一个我需要的工具。如果你能帮我取回来，我就告诉你克伦克的下落。
+          </div>
+          <div class="message player">
+            好的，我可以帮你取回工具。但你要保证告诉我真实的信息。
+          </div>
+          <div class="message dm">
+            法莉丝：我法莉丝从不说谎。只要你能把工具带回来，我会告诉你所有我知道的关于克伦克的事情。
+          </div>
+        </div>
+      </div>
+      
+      <!-- 底部栏 -->
+      <div id="footer-bar">
+        <div id="footer-left">
+          <div id="footer-left-col1" class="footer-text footer-left-text">
+            ◈ 状态<br>
+            HP 10/10  AC 16<br>
+            速度 30尺  攻击+4  1d8+2<br>
+            <br>
+            ◈ 属性<br>
+            力12 敏14 体10<br>
+            智16 感13 魅11
+          </div>
+          <div id="footer-left-col2" class="footer-text footer-left-text">
+            ◈ 装备<br>
+            长剑<br>
+            皮甲<br>
+            盾牌
+          </div>
+        </div>
+        
+        <div id="input-area">
+          <textarea id="html-textarea" placeholder="在此输入你想说的话或决策，回车发送…"></textarea>
+        </div>
+        
+        <div id="footer-right" class="footer-text footer-right-text">
+          ◈ 背包<br>
+          治疗药水×2<br>
+          铁钥匙<br>
+          <br>
+          ◈ 可前往<br>
+          锡街广场<br>
+          锻炉街<br>
+          下水道入口
+        </div>
+      </div>
+      
+      <!-- 骰子区域 -->
+      <div id="dice-area">
+        <div id="dice-container">
+          <div id="dice-result"></div>
+        </div>
+      </div>
+      
+      <!-- 继续指示器 -->
+      <div id="continue-indicator">▼ 点击继续</div>
+    </div>
+  </div>
+  
+  <script>
+    // 模拟游戏交互
+    document.getElementById('html-textarea').addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        const input = this.value.trim();
+        if (input) {
+          addMessage('player', input);
+          this.value = '';
+          
+          // 模拟DM回复
+          setTimeout(() => {
+            if (input.includes('金币') || input.includes('钱')) {
+              addMessage('dm', '法莉丝：金币？嗯，这是个不错的提议。我可以告诉你克伦克的藏身处位置，但需要50金币。');
+            } else if (input.includes('帮忙') || input.includes('合作')) {
+              addMessage('dm', '法莉丝：合作？有意思。如果你能帮我从锻炉街的铁匠那里取回一个特殊的工具，我就告诉你想知道的。');
+            } else if (input.includes('威胁') || input.includes('强迫')) {
+              addMessage('dm', '法莉丝：语气变冷威胁我？你知道这是谁的地盘吗？我建议你换个方式和我说话。');
+            } else {
+              addMessage('dm', '法莉丝：你的提议很有趣，但还不够。再想想，你有什么值得我交换信息的东西？');
+            }
+            showContinueIndicator();
+          }, 1000);
+        }
+      }
+    });
+    
+    function addMessage(type, text) {
+      const messagesContainer = document.getElementById('messages-container');
+      const messageDiv = document.createElement('div');
+      messageDiv.className = `message ${type}`;
+      messageDiv.textContent = text;
+      messagesContainer.appendChild(messageDiv);
+      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
+    
+    function showContinueIndicator() {
+      document.getElementById('continue-indicator').style.display = 'block';
+    }
+    
+    function hideContinueIndicator() {
+      document.getElementById('continue-indicator').style.display = 'none';
+    }
+    
+    // 点击对话框继续
+    document.getElementById('dialog-panel').addEventListener('click', function() {
+      hideContinueIndicator();
+    });
+    
+    // 初始显示继续指示器
+    setTimeout(showContinueIndicator, 1000);
+  </script>
+</body>
+</html>
